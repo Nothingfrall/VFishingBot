@@ -40,7 +40,7 @@ const userSchema = new mongoose.Schema({
   coins: { type: Number, default: 0 },
   inventory: { type: Object, default: {} },
   rodLevel: { type: Number, default: 1 },
-  baits: { type: Object, default: { 'Normal Worm': 5, 'Juicy Worm': 0 } }
+  baits: { type: Object, default: { 'Normal Worm': 5, 'Juicy Worm': 5 } }
 });
 
 // Cek apakah model sudah ada (untuk mencegah OverwriteModelError di serverless)
