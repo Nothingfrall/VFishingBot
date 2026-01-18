@@ -107,7 +107,7 @@ const GameState = {
     // Actions
     async castFishing() {
         try {
-            const response = await fetch(`${API_URL}/cast-fishing`, {
+            const response = await fetch(`${API_URL}/api/cast-fishing`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -226,7 +226,7 @@ const GameState = {
 
     async withdrawCoins() {
         try {
-            const response = await fetch(`${API_URL}/withdraw`, {
+            const response = await fetch(`${API_URL}/api/withdraw`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ telegram_id: this.userId })
