@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Fishing Game - Main Gameplay</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#42b2d7",
+                        "background-light": "#f6f7f8",
+                        "background-dark": "#121c20",
+                        "coin-gold": "#F3E08F",
+                        "lagoon-blue": "#E0F2F7"
+                    },
+                    fontFamily: {
+                        "display": ["Plus Jakarta Sans", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.5rem",
+                        "lg": "1rem",
+                        "xl": "1.5rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+        .pixel-wave {
+            background-image: radial-gradient(circle at 2px 2px, rgba(255,255,255,0.4) 1px, transparent 0);
+            background-size: 24px 24px;
+        }
+        .soft-shadow {
+            box-shadow: 0 10px 30px -5px rgba(66, 178, 215, 0.15);
+        }
+    </style>
+
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script src="https://unpkg.com/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"></script>
+    <script src="https://api.adsgram.ai/js/adsgram.js?blockId=YOUR_BLOCK_ID"></script>
+
+</head>
+<body class="bg-background-light dark:bg-background-dark font-display flex justify-center items-center min-h-screen">
+<!-- Mobile-First Container (Max-Width for Desktop) -->
+<div class="relative w-full max-w-[450px] h-[90vh] bg-white dark:bg-[#1a262b] flex flex-col shadow-2xl rounded-xl overflow-hidden border border-gray-100 dark:border-gray-800">
+<!-- Header Section -->
+<header class="flex items-center justify-between px-6 py-5 z-20 bg-white/80 dark:bg-[#1a262b]/80 backdrop-blur-md">
+<div class="flex items-center gap-2">
+<div class="p-1.5 bg-primary/10 rounded-lg">
+<span class="material-symbols-outlined text-primary text-[20px] font-bold">set_meal</span>
+</div>
+<h1 class="text-[#121617] dark:text-white text-lg font-extrabold tracking-tight">Fishing Game</h1>
+</div>
+<div class="flex items-center gap-2">
+    <!-- Bait Indicator -->
+    <button id="addBaitBtn" class="flex items-center gap-1 bg-orange-50 dark:bg-orange-900/20 px-2 py-1.5 rounded-full border border-orange-100 dark:border-orange-800/30 active:scale-95 transition-transform">
+        <span class="material-symbols-outlined text-orange-500 text-[16px]">bug_report</span>
+        <span id="baitText" class="text-[#121617] dark:text-gray-200 text-xs font-bold">0</span>
+        <span class="material-symbols-outlined text-orange-400 text-[14px] ml-1">add_circle</span>
+    </button>
+    <!-- Coin Indicator -->
+    <div class="flex items-center gap-1 bg-background-light dark:bg-gray-800/50 px-2 py-1.5 rounded-full border border-gray-100 dark:border-gray-700">
+        <span class="material-symbols-outlined text-coin-gold text-[16px] fill-1">monetization_on</span>
+        <span id="coinText" class="text-[#121617] dark:text-gray-200 text-xs font-bold">0</span>
+    </div>
+</div>
+</header>
+<!-- Gameplay Area (Main Stage) -->
+<main class="relative flex-1 flex flex-col items-center justify-center px-6 -mt-4 overflow-hidden">
+<!-- Wallet Connect Button (Centered Floating) -->
+<div id="ton-connect" class="absolute top-6 left-1/2 -translate-x-1/2 z-30"></div>
+<!-- Water Body -->
+<div class="absolute inset-x-0 bottom-0 top-32 bg-primary/10 dark:bg-primary/5 rounded-t-[40px] flex items-center justify-center overflow-hidden">
+<!-- Decorative Pixel Waves Style -->
+<div class="absolute inset-0 pixel-wave opacity-50"></div>
+<!-- Central Focus (The Boat/Pier Silhouette area) -->
+<div class="relative z-10 flex flex-col items-center">
+<div class="w-64 h-64 relative bg-primary/20 dark:bg-primary/10 rounded-full flex items-center justify-center">
+<!-- Ripple Effect -->
+<div class="absolute w-48 h-48 border-2 border-primary/30 rounded-full"></div>
+<div class="absolute w-32 h-32 border border-primary/20 rounded-full"></div>
+<!-- Main Visual -->
+<div class="relative bg-white dark:bg-gray-800 p-8 rounded-xl shadow-xl border-4 border-primary/10">
+<div class="relative w-24 h-24 flex items-center justify-center bg-lagoon-blue dark:bg-primary/20 rounded-lg overflow-hidden" data-alt="Small pixel art fishing boat on calm water" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuBiZlJmM81XKm_Ysq2AsY6BVHyjvaiAZLK9pN1LinGVJWYS8x96NUk7BjXSQ2cIyfpOPb6XHyqvpLftDaBt6f0VAlz7dde7O0uEIKWc2gfW-fIB0EUUptxG94EMLMkJWT486JvVdzhDVRhDJU5LqdLi9EnDvlaOPMxMU38RipzOv6FAYNVTHQ2QabbiYrHEYlga6OymczEzUeVru6bMJMLcXfyVIXD3_APIIKGdhARva7AxEtptDRQ7DMDXEsOlfKRKQLLAjmI6hOE');">
+<span class="material-symbols-outlined text-primary text-5xl">sailing</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Floating Elements (Soft Pixel Style) -->
+<div class="absolute top-1/4 right-10 w-4 h-4 bg-white/40 rounded-full"></div>
+<div class="absolute bottom-1/3 left-12 w-6 h-2 bg-white/30 rounded-full"></div>
+</div>
+<!-- Gameplay Text Overlay -->
+<div class="z-20 text-center mb-64">
+<h2 class="text-2xl font-extrabold text-[#121617] dark:text-white tracking-tight leading-tight">The Lagoon is Calm</h2>
+<p class="text-gray-500 dark:text-gray-400 text-sm mt-1 font-medium">Perfect weather for a big catch!</p>
+</div>
+</main>
+<!-- Bottom UI Dashboard -->
+<footer class="relative z-30 px-6 pb-8 pt-4 bg-white/90 dark:bg-[#1a262b]/90 backdrop-blur-xl border-t border-gray-100 dark:border-gray-800">
+<div class="flex items-center justify-between gap-4">
+<!-- Inventory Button -->
+<button id="inventoryBtn"
+  class="flex flex-col items-center justify-center w-16 h-16 rounded-xl bg-background-light dark:bg-gray-800 text-[#121617] dark:text-gray-300 transition-transform active:scale-90 border border-gray-100 dark:border-gray-700">
+
+<span class="material-symbols-outlined text-[24px]">backpack</span>
+<span class="text-[10px] font-bold mt-1 uppercase tracking-wider">Bag</span>
+</button>
+<!-- Main Action Button -->
+<button id="castBtn" class="flex-1 h-16 bg-gradient-to-r from-primary to-[#5ec9e8] text-white rounded-xl soft-shadow flex items-center justify-center gap-3 transition-transform active:scale-[0.98]">
+<span class="material-symbols-outlined text-[28px] fill-1">phishing</span>
+<span class="text-lg font-extrabold tracking-tight">Cast Fishing</span>
+</button>
+<!-- Shop Button -->
+<button id="shopBtn" class="flex flex-col items-center justify-center w-16 h-16 rounded-xl bg-background-light dark:bg-gray-800 text-[#121617] dark:text-gray-300 transition-transform active:scale-90 border border-gray-100 dark:border-gray-700">
+<span class="material-symbols-outlined text-[24px]">storefront</span>
+<span class="text-[10px] font-bold mt-1 uppercase tracking-wider">Shop</span>
+</button>
+</div>
+<!-- Footer Decorative Bar (Telegram Feel) -->
+<div class="mt-6 flex justify-center">
+<div class="w-32 h-1.5 bg-gray-200 dark:bg-gray-700 rounded-full"></div>
+</div>
+</footer>
+<!-- Catch Notification (Hidden State Example) -->
+<div id="catchNotification" class="absolute top-24 left-1/2 -translate-x-1/2 z-40 opacity-0 pointer-events-none transition-all duration-300 transform -translate-y-4">
+<div class="bg-white dark:bg-gray-800 px-4 py-2 rounded-full shadow-2xl flex items-center gap-2 border border-primary/20">
+<span class="material-symbols-outlined text-primary text-sm">check_circle</span>
+<span id="catchNotificationText" class="text-xs font-bold dark:text-white">New Catch: Blue Gill!</span>
+</div>
+</div>
+
+<!-- Catch Success Modal -->
+<div id="catchModal" class="absolute inset-0 z-50 flex items-center justify-center px-4 opacity-0 pointer-events-none transition-all duration-300">
+    <!-- Backdrop -->
+    <div class="absolute inset-0 bg-[#121617]/80 backdrop-blur-sm transition-opacity" onclick="closeCatchModal()"></div>
+    
+    <!-- Modal Card -->
+    <div class="relative w-full max-w-[320px] bg-white dark:bg-[#1a262b] rounded-3xl shadow-2xl overflow-hidden border border-white/10 transform scale-95 transition-all duration-300" id="catchModalCard">
+        <!-- Content -->
+        <div class="relative pt-8 pb-6 px-6 text-center">
+            <!-- Sparkles -->
+            <div class="flex justify-center mb-2">
+                <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-100 dark:border-yellow-700/30 shadow-sm">
+                    <span class="material-symbols-outlined text-yellow-500 text-sm animate-pulse">auto_awesome</span>
+                    <span class="material-symbols-outlined text-primary text-sm animate-bounce" style="animation-delay: 0.1s">water_drop</span>
+                    <span class="material-symbols-outlined text-yellow-500 text-sm animate-pulse" style="animation-delay: 0.2s">stars</span>
+                </div>
+            </div>
+            
+            <h2 class="text-2xl font-extrabold text-[#121617] dark:text-white tracking-tight mb-1">New Catch!</h2>
+            <p class="text-gray-500 dark:text-gray-400 text-xs font-bold uppercase tracking-wider">Added to collection</p>
+            
+            <!-- Icon Circle -->
+            <div class="mt-6 mb-6 relative flex justify-center">
+                <div class="w-32 h-32 rounded-full bg-gradient-to-b from-primary/20 to-transparent flex items-center justify-center relative">
+                    <div class="absolute inset-0 border-2 border-primary/20 rounded-full animate-ping opacity-20"></div>
+                    <span id="modalFishIcon" class="material-symbols-outlined text-6xl drop-shadow-lg transform transition-transform hover:scale-110 duration-300">phishing</span>
+                </div>
+            </div>
+
+            <!-- Fish Details -->
+            <div class="mb-6">
+                <div class="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 mb-3">
+                    <span class="material-symbols-outlined text-xs" id="modalRarityIcon">star</span>
+                    <span id="modalRarity" class="text-xs font-bold uppercase tracking-wider">Common</span>
+                </div>
+                <h3 id="modalFishName" class="text-xl font-bold text-[#121617] dark:text-white leading-tight">Fish Name</h3>
+                
+                <!-- Stats Grid -->
+                <div class="grid grid-cols-2 gap-4 mt-4 border-t border-gray-100 dark:border-gray-700 pt-4">
+                    <div class="flex flex-col">
+                        <span class="text-[10px] text-gray-400 uppercase font-bold">Weight</span>
+                        <span id="modalWeight" class="text-sm font-bold text-[#121617] dark:text-white">0.5 kg</span>
+                    </div>
+                    <div class="flex flex-col">
+                        <span class="text-[10px] text-gray-400 uppercase font-bold">Value</span>
+                        <div class="flex items-center justify-center gap-1">
+                            <span class="material-symbols-outlined text-yellow-500 text-sm">monetization_on</span>
+                            <span id="modalPrice" class="text-sm font-bold text-[#121617] dark:text-white">10</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Button -->
+            <button onclick="closeCatchModal()" class="w-full py-3.5 rounded-xl bg-gradient-to-r from-primary to-[#5ec9e8] text-white font-bold shadow-lg shadow-primary/25 active:scale-95 transition-transform">
+                Collect Catch
+            </button>
+        </div>
+    </div>
+</div>
+
+<script src="gameState.js"></script>
+<script>
+  if (window.Telegram && window.Telegram.WebApp) {
+    const tg = window.Telegram.WebApp;
+    tg.ready();
+    tg.expand();
+
+    const user = tg.initDataUnsafe?.user;
+    if (user) {
+      console.log("User ID:", user.id);
+      console.log("Name:", user.first_name);
+    }
+  } else {
+    console.log("Not opened inside Telegram");
+  }
+
+  // Safe initialization for TON Connect (Prevents game freeze if script fails)
+  let tonConnectUI;
+  try {
+    if (typeof TON_CONNECT_UI !== 'undefined') {
+      tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
+          manifestUrl: 'https://ton-connect.github.io/demo-dapp-with-react-ui/tonconnect-manifest.json',
+          buttonRootId: 'ton-connect'
+      });
+    }
+  } catch (e) {
+    console.warn("TON Connect failed to load:", e);
+  }
+
+  function updateUI() {
+    document.getElementById("coinText").innerText = (GameState.getCoins() || 0).toLocaleString();
+    document.getElementById("baitText").innerText = (GameState.getBaitCount() || 0).toLocaleString();
+  }
+  
+  // Initialize coins display on load
+  setTimeout(updateUI, 500); // Wait for init fetch
+
+const castBtn = document.getElementById("castBtn");
+const inventoryBtn = document.getElementById("inventoryBtn");
+const addBaitBtn = document.getElementById("addBaitBtn");
+const shopBtn = document.getElementById("shopBtn");
+const notification = document.getElementById("catchNotification");
+const notificationText = document.getElementById("catchNotificationText");
+const catchModal = document.getElementById("catchModal");
+const catchModalCard = document.getElementById("catchModalCard");
+
+function showCatchModal(fish) {
+    // Populate Data
+    document.getElementById('modalFishName').innerText = fish.name;
+    document.getElementById('modalPrice').innerText = fish.coin;
+    document.getElementById('modalRarity').innerText = fish.rarity;
+    
+    // Icon & Color
+    const iconEl = document.getElementById('modalFishIcon');
+    iconEl.innerText = fish.icon;
+    // Reset classes and add new color
+    iconEl.className = `material-symbols-outlined text-6xl drop-shadow-lg transform transition-transform hover:scale-110 duration-300 ${fish.color}`;
+
+    // Random Weight Logic (Flavor text)
+    let weight = (Math.random() * 5 + 0.1).toFixed(1);
+    if(fish.rarity === 'Legendary') weight = (Math.random() * 20 + 10).toFixed(1);
+    document.getElementById('modalWeight').innerText = `${weight} kg`;
+
+    // Show Modal
+    catchModal.classList.remove("opacity-0", "pointer-events-none");
+    catchModalCard.classList.remove("scale-95");
+    catchModalCard.classList.add("scale-100");
+}
+
+window.closeCatchModal = function() {
+    catchModal.classList.add("opacity-0", "pointer-events-none");
+    catchModalCard.classList.add("scale-95");
+    catchModalCard.classList.remove("scale-100");
+    
+    // Re-enable button if needed, though we do it in the main loop
+    castBtn.innerText = "Cast Fishing";
+    castBtn.disabled = false;
+};
+
+castBtn.addEventListener("click", () => {
+  castBtn.disabled = true;
+  castBtn.innerText = "Fishing...";
+
+  setTimeout(async () => {
+    const result = await GameState.castFishing();
+    
+    if (result.success) {
+      // Show Modal instead of notification for success
+      showCatchModal(result.fish);
+      
+    } else {
+      // Fish Escaped
+      notificationText.innerText = `Oh no! ${result.fish.name} escaped!`;
+      notificationText.classList.remove("dark:text-white");
+      notificationText.classList.add("text-red-500");
+      
+      // Show Notification Animation only for escape
+      notification.classList.remove("opacity-0", "pointer-events-none", "-translate-y-4");
+      setTimeout(() => {
+        notification.classList.add("opacity-0", "pointer-events-none", "-translate-y-4");
+      }, 3000);
+
+      castBtn.innerText = "Cast Fishing";
+      castBtn.disabled = false;
+    }
+    updateUI();
+  }, 1500);
+});
+
+addBaitBtn.addEventListener("click", async () => {
+    // Panggil fungsi watchAds dari GameState
+    const result = await GameState.watchAds();
+    if (result.success) {
+        updateUI();
+        alert("Reward received! +1 Juicy Worm");
+    } else if (result.error) {
+        console.log("Ad failed:", result.error);
+    }
+});
+
+inventoryBtn.addEventListener("click", () => {
+  window.location.href = "inventory.html";
+});
+
+shopBtn.addEventListener("click", () => {
+  window.location.href = "shop.html";
+});
+</script>
+</div>
+</body>
+</html>
