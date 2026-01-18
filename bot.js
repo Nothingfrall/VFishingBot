@@ -31,7 +31,7 @@ Tap PLAY to start`;
         [
           {
             text: "PLAY",
-            web_app: { url: "https://example.com" }
+            web_app: { url: "https://v-fishing-gd84393u4-ipowfuvms-projects.vercel.app/" }
           }
         ]
       ]
